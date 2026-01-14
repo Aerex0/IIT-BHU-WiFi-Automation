@@ -1,0 +1,7 @@
+[Unit]
+Description=WiFi Session Keepalive
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/wifi-keepalive.sh

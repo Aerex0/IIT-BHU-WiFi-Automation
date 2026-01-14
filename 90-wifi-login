@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Get arguments first
+IFACE="$1"
+STATUS="$2"
+
+# Only care about wlan0
+[ "$IFACE" != "wlan0" ] && exit 0
+
+IIT_BHU_UUID="84aab8b1-7bda-4e94-bd52-06181ff6678f"
+
+if [[ "$STATUS" = "up" ]]; then
+    # Wait a moment for connection to stabilize
+    sleep 2
+    
+    SSID=$(iw dev "$IFACE" link | awk -F': ' '/SSID/ {print $2}')
+    UUID=$(nmcli -t -f UUID c show --active | head -n 1)
+
+    echo "$(date) IFACE=$IFACE STATUS=$STATUS SSID=$SSID UUID=$UUID" >> /tmp/nm-dispatcher.log
+
+    if [[ "$SSID" = "IIT(BHU)" && "$UUID" = "$IIT_BHU_UUID" ]]; then
+        # Check if already online
+        CHECK=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 http://clients3.google.com/generate_204)
+        
+        if [ "$CHECK" != "204" ]; then
+            echo "$(date) Not authenticated, running login script" >> /tmp/nm-dispatcher.log
+            /usr/local/bin/wifi-login.sh >> /tmp/wifi-login.log 2>&1
+        else
+            echo "$(date) Already authenticated, skipping login" >> /tmp/nm-dispatcher.log
+        fi
+    fi
+fi
