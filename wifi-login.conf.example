@@ -1,0 +1,5 @@
+# WiFi Login Configuration
+# Copy this file to ~/.config/wifi-login.conf and add your credentials
+
+USERNAME="your_username_here"
+PASSWORD="your_password_here"
