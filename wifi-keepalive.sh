@@ -1,8 +1,14 @@
 #!/bin/bash
 
+# You may need to change this to your wifi interface
+IFACE="wlan0"
+
+# SSID of the college wifi
+COLLEGE_SSID="IIT(BHU)"
+
 # Check if connected to IIT(BHU)
-SSID=$(iw dev wlan0 link 2>/dev/null | awk -F': ' '/SSID/ {print $2}')
-[ "$SSID" != "IIT(BHU)" ] && exit 0
+SSID=$(iw dev "${IFACE}" link 2>/dev/null | awk -F': ' '/SSID/ {print $2}')
+[ "$SSID" != "${COLLEGE_SSID}" ] && exit 0
 
 # Check internet connectivity
 CHECK=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 http://clients3.google.com/generate_204)

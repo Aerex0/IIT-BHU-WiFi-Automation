@@ -13,7 +13,8 @@ export XAUTHORITY="${ACTUAL_HOME}/.Xauthority"
 # Credentials
 USERNAME=""
 PASSWORD=""
-
+IFACE="wlan0"
+COLLEGE_SSID="IIT(BHU)"
 FIREWALL_URL="http://192.168.249.1:1000"
 
 # Source config file
@@ -37,7 +38,7 @@ wifi_connect() {
     echo "$(date) Starting wifi_connect function"
     
     local probe_response
-    probe_response=$(curl -k -L --silent --interface wlan0 --connect-timeout 10 --max-time 15 \
+    probe_response=$(curl -k -L --silent --interface "${IFACE}" --connect-timeout 10 --max-time 15 \
         "http://www.google.com/generate_204" 2>&1)
     
     echo "$(date) Probe response received"
@@ -55,7 +56,7 @@ wifi_connect() {
     fi
 
     local login_page_html
-    login_page_html=$(curl -k -L --silent --interface wlan0 --connect-timeout 10 --max-time 15 \
+    login_page_html=$(curl -k -L --silent --interface "${IFACE}" --connect-timeout 10 --max-time 15 \
         "${login_form_url}" 2>&1)
     
     echo "$(date) Login page HTML retrieved"
@@ -76,7 +77,7 @@ wifi_connect() {
     # Main login POST request
     echo "$(date) Sending login POST request"
     local login_response
-    login_response=$(curl -k -L --silent --interface wlan0 --connect-timeout 10 --max-time 15 -X POST \
+    login_response=$(curl -k -L --silent --interface "${IFACE}" --connect-timeout 10 --max-time 15 -X POST \
             -H "Origin: ${FIREWALL_URL}" \
             -H "Referer: ${login_form_url}" \
             --data-urlencode "4Tredir=http://8.8.8.8" \
@@ -100,7 +101,7 @@ echo "$(date) Initial connectivity check: ${CHECK}"
 
 if [ "$CHECK" != "204" ]; then
     echo "$(date) Not connected, attempting login"
-    send_notification "WiFi Login" "Attempting to log in to IIT BHU WiFi network..."
+    send_notification "WiFi Login" "Attempting to log in to ${COLLEGE_SSID} WiFi network..."
     
     wifi_connect
     
@@ -110,10 +111,10 @@ if [ "$CHECK" != "204" ]; then
     
     if [ "$CHECK" = "204" ]; then
         echo "$(date) Login successful"
-        send_notification "WiFi Login" "Successfully logged in to IIT BHU WiFi network."
+        send_notification "WiFi Login" "Successfully logged in to ${COLLEGE_SSID} WiFi network."
     else
         echo "$(date) Login failed"
-        send_notification "WiFi Login" "Failed to log in to IIT BHU WiFi network."
+        send_notification "WiFi Login" "Failed to log in to ${COLLEGE_SSID} WiFi network."
     fi
 else
     echo "$(date) Already connected"

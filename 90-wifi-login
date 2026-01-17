@@ -1,24 +1,29 @@
 #!/bin/bash
 
 # Get arguments first
-IFACE="$1"
+DISP_IFACE="$1"
 STATUS="$2"
 
-# Only care about wlan0
-[ "$IFACE" != "wlan0" ] && exit 0
+# Your target interface
+IFACE="wlan0"
+# SSID of the college wifi
+COLLEGE_SSID="IIT(BHU)"
+# UUID of the college connection
+COLLEGE_UUID="84aab8b1-7bda-4e94-bd52-06181ff6678f"
 
-IIT_BHU_UUID="84aab8b1-7bda-4e94-bd52-06181ff6678f"
+# Only care about wlan0
+[ "$DISP_IFACE" != "$IFACE" ] && exit 0
 
 if [[ "$STATUS" = "up" ]]; then
     # Wait a moment for connection to stabilize
     sleep 2
     
-    SSID=$(iw dev "$IFACE" link | awk -F': ' '/SSID/ {print $2}')
+    SSID=$(iw dev "$DISP_IFACE" link | awk -F': ' '/SSID/ {print $2}')
     UUID=$(nmcli -t -f UUID c show --active | head -n 1)
 
-    echo "$(date) IFACE=$IFACE STATUS=$STATUS SSID=$SSID UUID=$UUID" >> /tmp/nm-dispatcher.log
+    echo "$(date) IFACE=$DISP_IFACE STATUS=$STATUS SSID=$SSID UUID=$UUID" >> /tmp/nm-dispatcher.log
 
-    if [[ "$SSID" = "IIT(BHU)" && "$UUID" = "$IIT_BHU_UUID" ]]; then
+    if [[ "$SSID" = "$COLLEGE_SSID" && "$UUID" = "$COLLEGE_UUID" ]]; then
         # Check if already online
         CHECK=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 http://clients3.google.com/generate_204)
         

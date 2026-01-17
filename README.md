@@ -106,15 +106,17 @@ nano 90-wifi-login
 ```
 
 Update these values:
-1. **Line 10:** Change `IIT_BHU_UUID` to your WiFi UUID from Step 2
-2. **Line 8:** If your WiFi interface is not `wlan0`, change it (check with `ip link`)
+1. **Line 8:** Change `wlan0` to your interface if different (check with "ip link")
+2. **Line 10:** Change `IIT(BHU)` to your WiFi SSID if different
+3. **Line 12:** Change `84aab8b1-7bda-4e94-bd52-06181ff6678f` to your WiFi SSID if different
 
 ```bash
-# Change this line:
-IIT_BHU_UUID="84aab8b1-7bda-4e94-bd52-06181ff6678f"  # ← Your UUID here
-
-# And verify this matches your interface:
-[ "$IFACE" != "wlan0" ] && exit 0  # ← Your WiFi interface
+# Change it to your interface
+IFACE="wlan0"
+# Change it to the SSID of the college wifi
+COLLEGE_SSID="IIT(BHU)"
+# Change it to the UUID of the college wifi
+COLLEGE_UUID="84aab8b1-7bda-4e94-bd52-06181ff6678f"
 ```
 
 #### b) Edit `wifi-keepalive.sh`
@@ -125,13 +127,15 @@ nano wifi-keepalive.sh
 ```
 
 Update these values:
-1. **Line 4:** Change `IIT(BHU)` to your WiFi SSID if different
-2. **Line 4:** Change `wlan0` to your interface if different
+1. **Line 4:** Change `wlan0` to your interface if different
+2. **Line 7:** Change `IIT(BHU)` to your WiFi SSID if different
 
 ```bash
-# Change this line:
-SSID=$(iw dev wlan0 link 2>/dev/null | awk -F': ' '/SSID/ {print $2}')
-[ "$SSID" != "IIT(BHU)" ] && exit 0  # ← Your SSID here
+# Change it with your interface
+IFACE="wlan0"
+
+# Change this with your WiFi SSID
+COLLEGE_SSID="IIT(BHU)"
 ```
 
 #### c) Edit `wifi-login.sh`
@@ -143,11 +147,19 @@ nano wifi-login.sh
 
 Update these values:
 1. **Line 4:** Replace `yourusername` with your actual Linux username
-2. **Line 17:** Change firewall URL if your network uses a different one
+2. **Line 16:** Replace `wlan0` with your interface if different
+3. **Line 17:** Replace `IIT(BHU)` with your wifi SSID
+3. **Line 18:** Change firewall URL if your network uses a different one
 
 ```bash
 # Change this line:
 ACTUAL_USER="yourusername"  # ← Your Linux username here
+
+# First check interface with "ip link" and then change it
+IFACE="wlan0"
+
+# Change this with your wifi SSID
+COLLEGE_SSID="IIT(BHU)"
 
 # And this if needed:
 FIREWALL_URL="http://192.168.249.1:1000"  # ← Your captive portal URL
@@ -234,7 +246,7 @@ sudo systemctl restart wifi-keepalive.timer
 
 ### Changing WiFi Interface
 
-If your WiFi interface is not `wlan0` (check with `ip link`), update all scripts:
+If your WiFi interface, SSID and UUID is different, update all scripts:
 
 ```bash
 # Find your interface
@@ -245,7 +257,7 @@ sudo nano /etc/NetworkManager/dispatcher.d/90-wifi-login
 sudo nano /usr/local/bin/wifi-keepalive.sh
 sudo nano /usr/local/bin/wifi-login.sh
 
-# Replace all instances of "wlan0" with your interface name
+# Replace all instances of "wlan0", "COLLEGE_SSID", "COLLEGE_UUID" accordingly
 ```
 
 ### Customizing Firewall URL
@@ -263,7 +275,7 @@ Once installed, the system works automatically:
 
 ### On Connection
 When you connect to the configured WiFi network, you'll receive a notification:
-- "Attempting to log in to IIT BHU WiFi network..."
+- "Attempting to log in to IIT(BHU) WiFi network..."
 - Then either "Successfully logged in" or "Failed to log in"
 
 ### Session Keepalive
@@ -457,13 +469,17 @@ To adapt this for a different captive portal WiFi network:
    ```
 
 3. **Update `wifi-login.sh`:**
+   - Change the parameters `IFACE`, `COLLEGE_SSID`, `FIREWALL_URL`
    - Modify the form fields in the `curl` POST request
-   - Update field names like `username`, `password`, `magic`, etc.
-   - Adjust the login URL
+   - Update field names like `USERNAME`, `PASSWORD`, `ACTUAL_USER`, etc.
+   - Adjust the Whatever you want
 
-4. **Update all SSID references:**
-   - In `90-wifi-login`: Change `"IIT(BHU)"` to your SSID
-   - In `wifi-keepalive.sh`: Change `"IIT(BHU)"` to your SSID
+4. **Update all IFACE and SSID references:**
+   - In `90-wifi-login`, `wifi-login.sh`, `wifi-keepalive.sh`: Change "IIT(BHU)" and "wlan0" to your SSID and interface
+
+
+5. **Update all UUID references:**
+   - In `90-wifi-login`: Change "84aab8b1-7bda-4e94-bd52-06181ff6678f" to your UUID
 
 ### Adding Multiple Networks
 
@@ -526,6 +542,6 @@ Created for IIT(BHU) WiFi automation. Adaptable for other captive portal network
 
 ---
 
-**Last Updated:** January 2026
+**Last Updated:** 17 January 2026
 
 For questions or issues, please open an issue on GitHub.
