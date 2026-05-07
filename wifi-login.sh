@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Hardcode the actual user's home directory
-ACTUAL_USER="yourusername"  # Replace with your username
+ACTUAL_USER="aerex"  # Replace with your username
 ACTUAL_HOME="/home/${ACTUAL_USER}"
 CONFIG_FILE="${ACTUAL_HOME}/.config/wifi-login.conf"
 

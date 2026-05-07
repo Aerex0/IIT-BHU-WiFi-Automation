@@ -2,8 +2,8 @@
 Description=Check WiFi session every 5 minutes
 
 [Timer]
-OnBootSec=2min
-OnUnitActiveSec=5min
+OnBootSec=30s
+OnUnitActiveSec=2min
 Persistent=true
 
 [Install]
