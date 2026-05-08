@@ -1,5 +1,11 @@
 # WiFi Login Configuration
-# Copy this file to ~/.config/wifi-login.conf and add your credentials
+# Copy this file to ~/.config/wifi-automation/wifi-login.conf and add your credentials/network details
+# Note: You can also use `./setup.sh` to generate this automatically.
 
 USERNAME="your_username_here"
 PASSWORD="your_password_here"
+COLLEGE_SSID="IIT(BHU)"
+COLLEGE_UUID="your_wifi_uuid_here"
+IFACE="wlan0"
+ACTUAL_USER="your_linux_username"
+FIREWALL_URL="http://192.168.249.1:1000"

@@ -49,8 +49,6 @@ sudo pacman -S curl iw networkmanager systemd
 
 ## Installation
 
-### Method 1: Automated Installation (Recommended)
-
 We provide a convenient setup script that will handle configuring your network parameters, storing your credentials securely, and installing all the services for you.
 
 ```bash
@@ -69,106 +67,6 @@ Follow the interactive prompts provided by the script:
 
 *(Note: The setup script will prompt for your `sudo` password to install system dependencies.)*
 
----
-
-### Method 2: Manual Installation
-
-If you prefer to configure everything manually, complete the following steps:
-
-#### Step 1: Clone or Download This Repository
-
-```bash
-cd ~/Documents
-git clone https://github.com/Aerex0/IIT-BHU-WiFi-Automation
-cd IIT-BHU-WiFi-Automation
-```
-
-#### Step 2: Find Your WiFi Network UUID
-
-You need the UUID of your WiFi connection:
-
-```bash
-nmcli connection show
-```
-
-Look for your WiFi network name and copy its UUID. Example output:
-```
-NAME         UUID                                  TYPE      DEVICE
-IIT(BHU)     84aab8b1-7bda-4e94-bd52-06181ff6678f  wifi      wlan0
-```
-
-Copy the UUID (the long string with dashes).
-
-#### Step 3: Configure Credentials
-
-For Security reasons prefer to create a configuration file for your credentials:
-
-```bash
-mkdir -p ~/.config/wifi-automation
-nano ~/.config/wifi-automation/wifi-login.conf
-```
-
-Add your credentials along with your network details:
-```bash
-USERNAME="your_username"
-PASSWORD="your_password"
-COLLEGE_SSID="IIT(BHU)"
-COLLEGE_UUID="84aab8b1-7bda-4e94-bd52-06181ff6678f"
-IFACE="wlan0"
-ACTUAL_USER=$(whoami)
-FIREWALL_URL="http://192.168.249.1:1000"
-```
-
-**Secure the file:**
-```bash
-chmod 600 ~/.config/wifi-automation/wifi-login.conf
-```
-
-#### Step 4: Install the Scripts
-
-Make all scripts executable:
-```bash
-chmod +x 90-wifi-login wifi-keepalive.sh wifi-login.sh
-```
-
-Copy scripts to system directories:
-```bash
-# Install NetworkManager dispatcher script
-sudo cp 90-wifi-login /etc/NetworkManager/dispatcher.d/
-
-# Install main scripts
-sudo cp wifi-login.sh /usr/local/bin/
-sudo cp wifi-keepalive.sh /usr/local/bin/
-
-# Install systemd service and timer
-sudo cp wifi-keepalive.service /etc/systemd/system/
-sudo cp wifi-keepalive.timer /etc/systemd/system/
-```
-
-#### Step 5: Enable the Services
-
-Reload systemd and enable the timer:
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable wifi-keepalive.timer
-sudo systemctl start wifi-keepalive.timer
-```
-
-Restart NetworkManager to activate the dispatcher script:
-```bash
-sudo systemctl restart NetworkManager
-```
-
-#### Step 6: Verify Installation
-
-Check if the timer is active:
-```bash
-systemctl status wifi-keepalive.timer
-systemctl list-timers | grep wifi-keepalive
-```
-
-You should see output showing the timer is active and the next run time.
-
 ## Configuration
 
 ### Adjusting Check Interval
@@ -183,8 +81,8 @@ sudo nano /etc/systemd/system/wifi-keepalive.timer
 Modify the `OnUnitActiveSec` value:
 ```ini
 [Timer]
-OnBootSec=2min           # Wait 2 minutes after boot
-OnUnitActiveSec=5min     # Check every 5 minutes (change this)
+OnBootSec=30s           # Wait 30s after boot
+OnUnitActiveSec=2min     # Check every 2 minutes (change this)
 ```
 
 Common intervals:
@@ -226,7 +124,7 @@ When you connect to the configured WiFi network, you'll receive a notification:
 - Then either "Successfully logged in" or "Failed to log in"
 
 ### Session Keepalive
-Every 5 minutes (or your configured interval), the system checks if you're still authenticated. If your session expired, it automatically re-authenticates.
+Every 2 minutes (or your configured interval), the system checks if you're still authenticated. If your session expired, it automatically re-authenticates.
 
 ### Manual Testing
 
@@ -416,17 +314,14 @@ To adapt this for a different captive portal WiFi network:
    ```
 
 3. **Update `wifi-login.sh`:**
-   - Change the parameters `IFACE`, `COLLEGE_SSID`, `FIREWALL_URL`
-   - Modify the form fields in the `curl` POST request
-   - Update field names like `USERNAME`, `PASSWORD`, `ACTUAL_USER`, etc.
-   - Adjust the Whatever you want
+   - Modify the form fields in the `curl` POST request to match your portal's requirements
+   - Update field names like `magic`, `username`, `password`, `4Tredir` if they differ
+   - Adjust the extraction logic for any required tokens (like `login_form_url` or `magic_token`)
 
-4. **Update all IFACE and SSID references:**
-   - In `90-wifi-login`, `wifi-login.sh`, `wifi-keepalive.sh`: Change "IIT(BHU)" and "wlan0" to your SSID and interface
-
-
-5. **Update all UUID references:**
-   - In `90-wifi-login`: Change "84aab8b1-7bda-4e94-bd52-06181ff6678f" to your UUID
+4. **Update Configuration File:**
+   - Instead of editing scripts, simply modify `~/.config/wifi-automation/wifi-login.conf`
+   - Update `COLLEGE_SSID`, `COLLEGE_UUID`, `IFACE`, and `FIREWALL_URL` as needed
+   - Alternatively, you can just re-run `./setup.sh` to re-fetch and generate these safely.
 
 ### Adding Multiple Networks
 
@@ -489,6 +384,6 @@ Created for IIT(BHU) WiFi automation. Adaptable for other captive portal network
 
 ---
 
-**Last Updated:** 17 January 2026
+**Last Updated:** 8 May 2026
 
 For questions or issues, please open an issue on GitHub.
