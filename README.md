@@ -267,32 +267,15 @@ tail -100 /tmp/wifi-login.log
 
 ## Uninstallation
 
-To completely remove the system:
+To completely remove the system, you can use the provided uninstallation script:
 
 ```bash
-# Stop and disable the timer
-sudo systemctl stop wifi-keepalive.timer
-sudo systemctl disable wifi-keepalive.timer
-
-# Remove all files
-sudo rm /etc/NetworkManager/dispatcher.d/90-wifi-login
-sudo rm /usr/local/bin/wifi-login.sh
-sudo rm /usr/local/bin/wifi-keepalive.sh
-sudo rm /etc/systemd/system/wifi-keepalive.service
-sudo rm /etc/systemd/system/wifi-keepalive.timer
-
-# Remove logs (optional)
-rm /tmp/wifi-*.log /tmp/nm-dispatcher.log
-
-# Remove config (optional - contains your credentials!)
-rm -r ~/.config/wifi-automation/
-
-# Reload systemd
-sudo systemctl daemon-reload
-
-# Restart NetworkManager
-sudo systemctl restart NetworkManager
+cd ~/Documents/IIT-BHU-WiFi-Automation
+chmod +x deletion.sh
+./deletion.sh
 ```
+
+The script will automatically stop the services, remove system files, clean up logs, and it will prompt you if you also want to delete your saved credentials.
 
 ## Customization
 
