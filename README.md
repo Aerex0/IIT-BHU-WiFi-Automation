@@ -49,7 +49,33 @@ sudo pacman -S curl iw networkmanager systemd
 
 ## Installation
 
-### Step 1: Clone or Download This Repository
+### Method 1: Automated Installation (Recommended)
+
+We provide a convenient setup script that will handle configuring your network parameters, storing your credentials securely, and installing all the services for you.
+
+```bash
+cd ~/Documents
+git clone https://github.com/Aerex0/IIT-BHU-WiFi-Automation
+cd IIT-BHU-WiFi-Automation
+chmod +x setup.sh
+./setup.sh
+```
+
+Follow the interactive prompts provided by the script:
+1. It will list your WiFi connections; pick the row matching your college WiFi.
+2. Enter your WiFi username.
+3. Enter your WiFi password.
+4. The system will then automatically install and configure all necessary services.
+
+*(Note: The setup script will prompt for your `sudo` password to install system dependencies.)*
+
+---
+
+### Method 2: Manual Installation
+
+If you prefer to configure everything manually, complete the following steps:
+
+#### Step 1: Clone or Download This Repository
 
 ```bash
 cd ~/Documents
@@ -57,8 +83,7 @@ git clone https://github.com/Aerex0/IIT-BHU-WiFi-Automation
 cd IIT-BHU-WiFi-Automation
 ```
 
-
-### Step 2: Find Your WiFi Network UUID
+#### Step 2: Find Your WiFi Network UUID
 
 You need the UUID of your WiFi connection:
 
@@ -74,103 +99,32 @@ IIT(BHU)     84aab8b1-7bda-4e94-bd52-06181ff6678f  wifi      wlan0
 
 Copy the UUID (the long string with dashes).
 
-### Step 3: Configure Credentials
+#### Step 3: Configure Credentials
 
 For Security reasons prefer to create a configuration file for your credentials:
 
 ```bash
-mkdir -p ~/.config
-nano ~/.config/wifi-login.conf
+mkdir -p ~/.config/wifi-automation
+nano ~/.config/wifi-automation/wifi-login.conf
 ```
 
-Add your credentials:
+Add your credentials along with your network details:
 ```bash
 USERNAME="your_username"
 PASSWORD="your_password"
+COLLEGE_SSID="IIT(BHU)"
+COLLEGE_UUID="84aab8b1-7bda-4e94-bd52-06181ff6678f"
+IFACE="wlan0"
+ACTUAL_USER=$(whoami)
+FIREWALL_URL="http://192.168.249.1:1000"
 ```
 
 **Secure the file:**
 ```bash
-chmod 600 ~/.config/wifi-login.conf
+chmod 600 ~/.config/wifi-automation/wifi-login.conf
 ```
 
-Or you can also choose to write the credentials directly in the `wifi-login.sh` file
-
-### Step 4: Update Configuration Files
-
-#### a) Edit `90-wifi-login`
-
-Open the file:
-```bash
-nano 90-wifi-login
-```
-
-Update these values:
-1. **Line 8:** Change `wlan0` to your interface if different (check with "ip link")
-2. **Line 10:** Change `IIT(BHU)` to your WiFi SSID if different
-3. **Line 12:** Change `84aab8b1-7bda-4e94-bd52-06181ff6678f` to your WiFi SSID if different
-
-```bash
-# Change it to your interface
-IFACE="wlan0"
-# Change it to the SSID of the college wifi
-COLLEGE_SSID="IIT(BHU)"
-# Change it to the UUID of the college wifi
-COLLEGE_UUID="84aab8b1-7bda-4e94-bd52-06181ff6678f"
-```
-
-#### b) Edit `wifi-keepalive.sh`
-
-Open the file:
-```bash
-nano wifi-keepalive.sh
-```
-
-Update these values:
-1. **Line 4:** Change `wlan0` to your interface if different
-2. **Line 7:** Change `IIT(BHU)` to your WiFi SSID if different
-
-```bash
-# Change it with your interface
-IFACE="wlan0"
-
-# Change this with your WiFi SSID
-COLLEGE_SSID="IIT(BHU)"
-```
-
-#### c) Edit `wifi-login.sh`
-
-Open the file:
-```bash
-nano wifi-login.sh
-```
-
-Update these values:
-1. **Line 4:** Replace `yourusername` with your actual Linux username
-2. **Line 16:** Replace `wlan0` with your interface if different
-3. **Line 17:** Replace `IIT(BHU)` with your wifi SSID
-3. **Line 18:** Change firewall URL if your network uses a different one
-
-```bash
-# Change this line:
-ACTUAL_USER="yourusername"  # ← Your Linux username here
-
-# First check interface with "ip link" and then change it
-IFACE="wlan0"
-
-# Change this with your wifi SSID
-COLLEGE_SSID="IIT(BHU)"
-
-# And this if needed:
-FIREWALL_URL="http://192.168.249.1:1000"  # ← Your captive portal URL
-```
-
-To find your username:
-```bash
-whoami
-```
-
-### Step 5: Install the Scripts
+#### Step 4: Install the Scripts
 
 Make all scripts executable:
 ```bash
@@ -191,7 +145,7 @@ sudo cp wifi-keepalive.service /etc/systemd/system/
 sudo cp wifi-keepalive.timer /etc/systemd/system/
 ```
 
-### Step 6: Enable the Services
+#### Step 5: Enable the Services
 
 Reload systemd and enable the timer:
 ```bash
@@ -205,7 +159,7 @@ Restart NetworkManager to activate the dispatcher script:
 sudo systemctl restart NetworkManager
 ```
 
-### Step 7: Verify Installation
+#### Step 6: Verify Installation
 
 Check if the timer is active:
 ```bash
@@ -246,18 +200,11 @@ sudo systemctl restart wifi-keepalive.timer
 
 ### Changing WiFi Interface
 
-If your WiFi interface, SSID and UUID is different, update all scripts:
+If your WiFi interface, SSID or UUID changes, the easiest way is to either re-run `./setup.sh` or update your `~/.config/wifi-automation/wifi-login.conf` file manually.
 
 ```bash
-# Find your interface
-ip link show
-
-# Update in all three files:
-sudo nano /etc/NetworkManager/dispatcher.d/90-wifi-login
-sudo nano /usr/local/bin/wifi-keepalive.sh
-sudo nano /usr/local/bin/wifi-login.sh
-
-# Replace all instances of "wlan0", "COLLEGE_SSID", "COLLEGE_UUID" accordingly
+# Update directly in your configuration file
+nano ~/.config/wifi-automation/wifi-login.conf
 ```
 
 ### Customizing Firewall URL
@@ -267,7 +214,7 @@ Different networks use different captive portal URLs. To find yours:
 1. Connect to the WiFi without logging in
 2. Open a browser and try to visit any website
 3. You'll be redirected to a login page - copy that URL (only till port e.g. `http://192.168.249.1:1000`)
-4. Update `FIREWALL_URL` in `wifi-login.sh`
+4. Update `FIREWALL_URL` in `~/.config/wifi-automation/wifi-login.conf`
 
 ## Usage
 
@@ -382,12 +329,12 @@ sudo systemctl start wifi-keepalive.timer
 #### 5. Wrong credentials
 **Check config file:**
 ```bash
-cat ~/.config/wifi-login.conf
+cat ~/.config/wifi-automation/wifi-login.conf
 ```
 
 **Fix:** Update credentials and make sure there are no extra spaces:
 ```bash
-nano ~/.config/wifi-login.conf
+nano ~/.config/wifi-automation/wifi-login.conf
 # Ensure format is: USERNAME="your_username"
 ```
 
@@ -440,7 +387,7 @@ sudo rm /etc/systemd/system/wifi-keepalive.timer
 rm /tmp/wifi-*.log /tmp/nm-dispatcher.log
 
 # Remove config (optional - contains your credentials!)
-rm ~/.config/wifi-login.conf
+rm -r ~/.config/wifi-automation/
 
 # Reload systemd
 sudo systemctl daemon-reload
@@ -514,9 +461,9 @@ sudo chmod 666 /var/log/wifi-login.log
 
 ⚠️ **Important Security Notes:**
 
-1. **Credentials File:** Your `~/.config/wifi-login.conf` contains plaintext credentials. Keep it secure:
+1. **Credentials File:** Your `~/.config/wifi-automation/wifi-login.conf` contains plaintext credentials. Keep it secure:
    ```bash
-   chmod 600 ~/.config/wifi-login.conf
+   chmod 600 ~/.config/wifi-automation/wifi-login.conf
    ```
 
 2. **Root Access:** The scripts need root access to run automatically. Review the code before installation.

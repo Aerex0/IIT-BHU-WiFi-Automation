@@ -1,10 +1,19 @@
 #!/bin/bash
 
 # You may need to change this to your wifi interface
-IFACE="wlan0"
+IFACE=""
 
 # SSID of the college wifi
-COLLEGE_SSID="IIT(BHU)"
+COLLEGE_SSID=""
+
+# Find config file in home directories (since this runs as root)
+CONFIG_FILE=$(ls /home/*/.config/wifi-automation/wifi-login.conf 2>/dev/null | head -n 1)
+
+# Source config file
+if [ -n "$CONFIG_FILE" ] && [ -f "$CONFIG_FILE" ]; then
+    source "$CONFIG_FILE"
+    ACTUAL_HOME="/home/${ACTUAL_USER}"
+fi
 
 # Check if connected to IIT(BHU)
 SSID=$(iw dev "${IFACE}" link 2>/dev/null | awk -F': ' '/SSID/ {print $2}')

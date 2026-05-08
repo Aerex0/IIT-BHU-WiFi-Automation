@@ -1,21 +1,30 @@
 #!/bin/bash
 
-# Hardcode the actual user's home directory
-ACTUAL_USER="aerex"  # Replace with your username
-ACTUAL_HOME="/home/${ACTUAL_USER}"
-CONFIG_FILE="${ACTUAL_HOME}/.config/wifi-login.conf"
+# Find config file in home directories (since this runs as root)
+CONFIG_FILE=$(ls /home/*/.config/wifi-automation/wifi-login.conf 2>/dev/null | head -n 1)
+
+if [ -n "$CONFIG_FILE" ] && [ -f "$CONFIG_FILE" ]; then
+    # Parse ACTUAL_USER early if needed, or rely on it being sourced
+    source "$CONFIG_FILE"
+    ACTUAL_HOME="/home/${ACTUAL_USER}"
+else
+    # Fallback to standard
+    ACTUAL_USER=$(whoami)
+    ACTUAL_HOME="/home/${ACTUAL_USER}"
+fi
 
 # For notifications to work when run as root
 export DISPLAY=:0
-export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/1000/bus"
+USER_ID=$(id -u "$ACTUAL_USER" 2>/dev/null || echo 1000)
+export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${USER_ID}/bus"
 export XAUTHORITY="${ACTUAL_HOME}/.Xauthority"
 
 # Credentials
 USERNAME=""
 PASSWORD=""
-IFACE="wlan0"
-COLLEGE_SSID="IIT(BHU)"
-FIREWALL_URL="http://192.168.249.1:1000"
+IFACE=""
+COLLEGE_SSID=""
+FIREWALL_URL=""
 
 # Source config file
 if [ -f "$CONFIG_FILE" ]; then
@@ -30,7 +39,7 @@ fi
 # Function to send notifications as the actual user
 send_notification() {
     if [ -n "$ACTUAL_USER" ]; then
-        sudo -u "$ACTUAL_USER" DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus notify-send "$@" 2>/dev/null || true
+        sudo -u "$ACTUAL_USER" DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${USER_ID}/bus" notify-send "$@" 2>/dev/null || true
     fi
 }
 
